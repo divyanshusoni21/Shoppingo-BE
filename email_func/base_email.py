@@ -1,4 +1,5 @@
-from utils.variables import adminPortalDomain,projectName
+from utility.variables import projectName
+from shoppingo.settings import FE_DOMAIN
 
 def header(username):
     html_content = '<!DOCTYPE html><html><head>'
@@ -110,7 +111,7 @@ def footer(html_content):
     html_content+= 'The information in this e-mail and in any attachment is confidential and may be priviledged. If you are not the intended recipient, then please destroy this message, '
     html_content+= f'delete any copies held on your systems and notify the <span>{projectName}</span> team immediately. Thank you.</p>'
     html_content+= f'<p style="padding-bottom: 1em;">To contact <span>{projectName}</span> or for further information on the'
-    html_content+= f'services that {projectName} provide visit <a href="#/">{adminPortalDomain}</a></p>'
+    html_content+= f'services that {projectName} provide visit <a href="#/">{FE_DOMAIN}</a></p>'
     html_content+= '</td></tr><tr><td width="100%" height="20"></td></tr></tbody></table></td></tr></tbody></table></td></tr></tbody></table></body></html>'
     
     return html_content

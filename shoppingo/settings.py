@@ -56,6 +56,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -152,12 +153,12 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=int(os.environ.get('ACCESS_TOKEN_LIFETIME'))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.environ.get('REFRESH_TOKEN_LIFETIME'))),
 }
 
 
-CORS_ORIGIN_ALLOW_ALL = True
+
 CORS_ALLOWED_ORIGINS = [
 
     "http://localhost:8000",
@@ -174,3 +175,60 @@ CACHES = {
         'TIMEOUT':10800 # 3 hours
     }
 }
+
+FE_DOMAIN = os.environ.get('FE_DOMAIN')
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST=os.environ.get('EMAIL_HOST')
+EMAIL_PORT=os.environ.get('EMAIL_PORT')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+
+LOGFILES_DIRECTORY_NAME = 'log_files'
+
+if not os.path.exists(LOGFILES_DIRECTORY_NAME):
+    os.makedirs(LOGFILES_DIRECTORY_NAME)
+
+LOGGING = {  
+    'version': 1,  
+    # Version of logging  
+    'disable_existing_loggers': False,  
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s  %(levelname)s %(pathname)s ln. no. %(lineno)d %(message)s',
+        }
+    },
+    # Handlers ####
+    'handlers': {  
+        'warning_file': {  
+            'level': 'WARNING',  
+            'class': 'logging.FileHandler',  
+            'filename': f'{LOGFILES_DIRECTORY_NAME}/warning.log',
+            'formatter': 'default'    
+        },
+        'info_file': {  
+            'level': 'INFO',  
+            'class': 'logging.FileHandler',  
+            'filename': f'{LOGFILES_DIRECTORY_NAME}/info.log',
+            'formatter': 'default'    
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'default'  
+        },
+    },  
+    # Loggers ####  
+    'loggers': {  
+        'django': {  
+            'handlers': ['warning_file','info_file','console'],  
+            'level': 'DEBUG',  
+            'propagate': True,  
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG')  
+        },  
+    },  
+}  
+import logging 
+logger = logging.getLogger('django')

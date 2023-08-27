@@ -2,7 +2,8 @@ from django.core.mail import EmailMultiAlternatives
 import threading
 from .email_templates import  EmailTemplates
 from .base_email import footer
-from restra_backend.settings import logger
+from shoppingo.settings import logger
+import traceback
 
 def get_body(data):
     emailType = data['type']
@@ -10,8 +11,8 @@ def get_body(data):
     
     if emailType == 'registration' :
         content = content.register()
-    elif emailType == 'plan_expire' :
-        content = content.plan_expired()
+    elif emailType == 'forget-password' :
+        content = content.forget_password()
     
     content = footer(content)
     return content
@@ -43,5 +44,5 @@ class Email:
                 EmailThread(email).start()
                 logger.info(f'email send to {data["to_email"]} , subject :{data["email_subject"]}')
               
-        except Exception as e :
-            logger.warning(f'error in email send : {e}')
+        except Exception :
+            logger.warning(traceback.format_exc())

@@ -4,11 +4,18 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import  smart_bytes
 from django.urls import reverse
 from email_func.email import Email
+from .variables import emailVerificationPath,resetPasswordEmailPath
+from shoppingo.settings import FE_DOMAIN
 
-def generate_verification_link(request , user):
+def generate_verification_link(user,linkType='register'):
     uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
-    reverseLink = reverse('set-password')
-    customUrl = 'http://127.0.0.1:8000' +reverseLink+"?uidb="+str(uidb64)
+    path = ''
+    if linkType == 'register':
+        path = emailVerificationPath
+    elif linkType == 'forget-password':
+        path = resetPasswordEmailPath
+        
+    customUrl = FE_DOMAIN + path +"?uidb="+str(uidb64)
     return customUrl
 
 def runSerializer(serializerClass,data,partial=False,obj = None) -> tuple :
@@ -52,3 +59,13 @@ def sendMail(body,email,subject):
             }
             
     Email.send_email(data)
+
+
+def send_token_response(user):
+    data = {
+        "refresh": str(user.tokens()["refresh"]),
+        "access": str(user.tokens()["access"]),
+        "username": user.username,
+
+    }
+    return data
