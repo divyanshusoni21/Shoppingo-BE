@@ -153,8 +153,8 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=int(os.environ.get('ACCESS_TOKEN_LIFETIME'))),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.environ.get('REFRESH_TOKEN_LIFETIME'))),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=int(os.environ.get('ACCESS_TOKEN_LIFETIME',1))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.environ.get('REFRESH_TOKEN_LIFETIME',1))),
 }
 
 
