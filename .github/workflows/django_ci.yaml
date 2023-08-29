@@ -12,22 +12,22 @@ jobs :
     runs-on: ubuntu-latest
 
     steps :
-      -name: Checkout Code
+    - name: Checkout Code
       uses: actions/checkout@v3
 
-      -name: Setup Python
+    - name: Setup Python
       uses: actions/setup-python@v4
       with :
         python-version: 3.x
 
-      -name: Create Vritual Environment
+    - name: Create Vritual Environment
       run: python3 -m venv venv
 
-      -name: Activate Vritual Environment
+    - name: Activate Vritual Environment
       run: source venv/bin/activate
 
-      -name: Install reqiurements
+    - name: Install reqiurements
       run: pip install -r requirements.txt
 
-      -name: Run Test cases
+    - name: Run Test cases
       run: python3 manage.py test
