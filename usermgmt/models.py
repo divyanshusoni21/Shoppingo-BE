@@ -8,11 +8,12 @@ from utility.mixins import UUIDMixin
 
 class UserManager(BaseUserManager):
 
-    def create_user(self,  email, password=None):
+    def create_user(self,  email, password=None,username=''):
         if email is None:
             raise TypeError('Users should have a Email')
 
         user = self.model( email=self.normalize_email(email))
+        user.username = username
         user.set_password(password)
         user.save()
         return user
