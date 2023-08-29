@@ -1,0 +1,33 @@
+name: Django CI
+
+on :
+  push :
+    branches: ["main"]
+  pull_request :
+    branches: ["main"]
+  
+jobs :
+  build :
+
+    runs-on: ubuntu-latest
+
+    steps :
+      -name: Checkout Code
+      uses: actions/checkout@v3
+
+      -name: Setup Python
+      uses: actions/setup-python@v4
+      with :
+        python-version: 3.x
+
+      -name: Create Vritual Environment
+      run: python3 -m venv venv
+
+      -name: Activate Vritual Environment
+      run: source venv/bin/activate
+
+      -name: Install reqiurements
+      run: pip install -r requirements.txt
+
+      -name: Run Test cases
+      run: python3 manage.py test
