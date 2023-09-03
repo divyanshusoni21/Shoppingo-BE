@@ -1,5 +1,6 @@
 from .models import *
 from rest_framework import serializers
+from utility.mixins import FieldMixin
 
 
 class BrandSerializer(serializers.ModelSerializer):
@@ -31,11 +32,11 @@ class CategorySerializer(serializers.ModelSerializer):
         return subCategorySerializer.data
     
 
-class ProductReviewSerializer(serializers.ModelSerializer):
+class ProductReviewSerializer(FieldMixin,serializers.ModelSerializer):
     
     class Meta :
         model = ProductReview
-        fields = ['id','user','review','rating']
+        fields = '__all__'
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
@@ -50,7 +51,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     def get_product_review(self,obj):
         ''' getting product's reviews '''
         productReviews = obj.product_review.all()
-        serializer = ProductReviewSerializer(productReviews,many=True)
+        serializer = ProductReviewSerializer(productReviews,many=True,context={'fields':['id','user','review','rating']})
         return serializer.data
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -58,3 +59,16 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta :
         model = Product
         fields = ['id','name','price','image','discount','rating']
+
+class userCartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserCart
+        fields= '__all__'
+
+class userCartGetSerializer(serializers.ModelSerializer):
+    ''' serializer to return nested product data as well'''
+    product = ProductSerializer()
+    class Meta:
+        model = UserCart
+        fields= ['id','product','quantity']

@@ -25,3 +25,13 @@ class ProductAdmin(admin.ModelAdmin):
     autocomplete_fields = ('tags',)
     search_fields = ('id','name','category__id','category__sub_category','brand__brand_name')
 admin.site.register(Product,ProductAdmin)
+
+class UserCartAdmin(admin.ModelAdmin):
+    list_display=('user','product','quantity')
+    search_fields = ('user__id','user__email','product__id','product__name')
+admin.site.register(UserCart,UserCartAdmin)
+
+class ProductReviewAdmin(admin.ModelAdmin):
+    list_display = ('user','product','rating')
+    search_fields = ('id','user__id','user__email','product__id','product__name')
+admin.site.register(ProductReview,ProductReviewAdmin)

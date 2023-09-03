@@ -35,5 +35,5 @@ class OrderItem(UUIDMixin):
     quantity = models.IntegerField(default=1)
 
     def __str__(self):
-        return self.user.email + f" ({self.product.name})"
+        return self.order.user.email + f" ({self.product.name})"
     
