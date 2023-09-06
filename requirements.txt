@@ -9,4 +9,5 @@ python-dotenv
 psycopg2-binary
 Pillow
 requests
+razorpay
 locust

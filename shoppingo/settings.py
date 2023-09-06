@@ -187,6 +187,10 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER','')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD','')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL','')
 
+
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID','')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET','')
+
 LOGFILES_DIRECTORY_NAME = 'log_files'
 
 if not os.path.exists(LOGFILES_DIRECTORY_NAME):
