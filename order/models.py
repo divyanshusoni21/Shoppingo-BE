@@ -16,8 +16,8 @@ ORDER_STATUS = (
 class Order(UUIDMixin):
     user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='user_order')
     order_date = models.DateTimeField()
-    order_lifecycle = models.JSONField(default=dict)
-    order_status = models.CharField(choices=ORDER_STATUS,max_length=20)
+    order_lifecycle = models.JSONField(default=dict,null=True,blank=True)
+    order_status = models.CharField(choices=ORDER_STATUS,max_length=20,default=ORDER_STATUS[0][0])
     order_id = models.CharField(max_length=50, blank=True, db_index=True)
     order_location = models.TextField(blank=True)
     total_item = models.IntegerField(default=1)
