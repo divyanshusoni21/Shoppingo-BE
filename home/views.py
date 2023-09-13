@@ -18,12 +18,12 @@ class ProductViewSet(generics.GenericAPIView):
         try :
             # get product with it's related and reverse related objects like brand,tags,category and reviews
             product = Product.objects.filter(id = productId).select_related('brand','category').prefetch_related('product_review','tags')
-            if product.exists():
-                product = product[0]
-                serializer = self.serializer_class(product,context={"request": request})
-                return Response(serializer.data,status=status.HTTP_200_OK)
-            logger.warning('error : No product found with given id!')
-            return Response({'error':'No product found with given id!'},status=status.HTTP_400_BAD_REQUEST)
+            if not product.exists():
+                raise Exception('error : No product found with given id!')
+            
+            product = product[0]
+            serializer = self.serializer_class(product,context={"request": request})
+            return Response(serializer.data,status=status.HTTP_200_OK)
         
         except Exception as e :
             logger.warning(traceback.format_exc())
@@ -49,14 +49,15 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
             categoryId = kwargs['pk']
             # get sub category with products associated with it
             subCategory = SubCategory.objects.filter(id = categoryId).prefetch_related('product_set')
-            if subCategory.exists():
-                subCategory = subCategory[0]
-                products = subCategory.product_set.all() # getting the products
-                serializer = ProductSerializer(products,many=True,context={"request": request})
-                return Response(serializer.data,status=status.HTTP_200_OK)
+            if not subCategory.exists():
+                raise Exception('error : Please check category id again!')
             
-            logger.warning('error : Please check category id again!')
-            return Response({'error':'Please check category id again!'},status=status.HTTP_400_BAD_REQUEST)
+            subCategory = subCategory[0]
+            products = subCategory.product_set.all() # getting the products
+            serializer = ProductSerializer(products,many=True,context={"request": request})
+            return Response(serializer.data,status=status.HTTP_200_OK)
+            
+            
         except Exception as e :
             logger.warning(traceback.format_exc())
             return Response({'error':str(e)},status=status.HTTP_400_BAD_REQUEST)
@@ -87,9 +88,8 @@ class UserCartViewSet(viewsets.ModelViewSet):
 
             product = Product.objects.filter(id = productId)
             if not product.exists():
-                logger.warning('error : Check product id again!')
-                return Response({'error':'Please check product id again!'},status=status.HTTP_400_BAD_REQUEST)
-
+                raise Exception('error : Check product id again!')
+                
             product = product[0]
 
             # handleing edge case : if any object in UserCart is already there for that product then increase the quantity
@@ -112,32 +112,46 @@ class UserCartViewSet(viewsets.ModelViewSet):
     
     def partial_update(self, request, *args, **kwargs):
         try : 
-            cartItemId = kwargs['pk']
+            productId = kwargs['pk']
+            user = request.user
             quantity = int(request.data['quantity'])
-            cartItem = UserCart.objects.filter(id=cartItemId)
-            if cartItem.exists():
-                cartItem = cartItem[0]
-                
-                # handling the edge case : if quantity provided is 0 , delete the object
-                if quantity == 0 :
-                    cartItem.delete()
-                else :
-                    # update the quantity for the product
-                    cartItem.quantity = quantity
-                    cartItem.save()
-
-                return Response({'success':'cart updated successfully'},status=status.HTTP_200_OK)
+            cartItem = UserCart.objects.filter(product_id=productId,user = user)
+            if not  cartItem.exists():
+                raise Exception('error : Please check id again!')
             
-            logger.warning('error : Please check id again!')
-            return Response({'error':'Please check id again!'},status=status.HTTP_400_BAD_REQUEST)
-        
+            cartItem = cartItem[0]
+            
+            # handling the edge case : if quantity provided is 0 , delete the object
+            if quantity == 0 :
+                cartItem.delete()
+            else :
+                # update the quantity for the product
+                cartItem.quantity = quantity
+                cartItem.save()
+
+            return Response({'success':'cart updated successfully'},status=status.HTTP_200_OK)
+            
         except Exception as e :
             logger.warning(traceback.format_exc())
             return Response({'error':str(e)},status=status.HTTP_400_BAD_REQUEST)
     
     def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response({'success':'deleted cart item'},status=status.HTTP_200_OK)
+        try :
+            productId = kwargs['pk']
+            user = request.user
+            cartItem = UserCart.objects.filter(product_id=productId,user = user)
+            if not cartItem.exists():
+                raise Exception('please check product id again!')
+            
+            cartItem = cartItem[0]
+            cartItem.delete()
+            return Response({'success':'deleted cart item'},status=status.HTTP_200_OK)
+            
+        
+        except Exception as e :
+            logger.warning(traceback.format_exc())
+            return Response({'error':str(e)},status=status.HTTP_400_BAD_REQUEST)
+       
 
 class ProductReviewViewSet(generics.GenericAPIView):
     serializer_class = ProductReviewSerializer
@@ -147,24 +161,23 @@ class ProductReviewViewSet(generics.GenericAPIView):
             user = request.user
             productId = request.data['product']
             product = Product.objects.filter(id = productId)
-            if product.exists():
-                product = product[0]
-                # only let the user the to review the product if he/she has used it
-                userOrder = OrderItem.objects.filter(order__user = user , order__order_status = ORDER_STATUS[2][0] , product = product)
-                if userOrder.exists():
-                    # if any order exists save the review
-                    request.data['user'] = user.id
-                    serializer = self.serializer_class(data=request.data)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
-                    return Response({'success':'Product review posted'},status=status.HTTP_200_OK)
-                
-                logger.warning('error : user have not used this product yet!')
-                return Response({'error':'user have not used this product yet!'},status=status.HTTP_400_BAD_REQUEST)
+            if not product.exists():
+                raise Exception('error : please check product id again!')
             
-            logger.warning('error : please check product id again!')
-            return Response({'error':'please check product id again!'},status=status.HTTP_400_BAD_REQUEST)
-        
+            product = product[0]
+            # only let the user the to review the product if he/she has used it
+            userOrder = OrderItem.objects.filter(order__user = user , order__order_status = ORDER_STATUS[2][0] , product = product)
+            if not userOrder.exists():
+                raise Exception('error : user have not used this product yet!')
+            
+            # if any order exists save the review
+            request.data['user'] = user.id
+            serializer = self.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({'success':'Product review posted'},status=status.HTTP_200_OK)
+            
+                 
         except Exception as e :
             logger.warning(traceback.format_exc())
             return Response({'error':str(e)},status=status.HTTP_400_BAD_REQUEST)
