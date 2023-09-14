@@ -23,20 +23,19 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
 
  
-   
     def retrieve(self, request, *args, **kwargs):
         try :
             orderId = kwargs['pk']
             # getting order with given order id, with order items with sql join
             order = Order.objects.filter(order_id = orderId).prefetch_related('orderitem_set')
-            if order.exists():
-                order = order[0]
-                
-                serializer = self.serializer_class(order,context={'request':request})
-                return Response(serializer.data,status=status.HTTP_200_OK)
+            if not order.exists():
+                raise Exception('order not found with given id!')
             
-            raise Exception('order not found with given id!')
-        
+            order = order[0]
+            
+            serializer = self.serializer_class(order,context={'request':request})
+            return Response(serializer.data,status=status.HTTP_200_OK)
+            
         except Exception as e :
             logger.warning(traceback.format_exc())
             return Response({'error':str(e)},status=status.HTTP_400_BAD_REQUEST)
@@ -71,10 +70,6 @@ class OrderViewSet(viewsets.ModelViewSet):
 
             today = datetime.now()
             request.data['order_date'] = today
-
-            # add order lifecycle
-            lifecycle = {ORDER_STATUS[0][0]:str(today)}
-            request.data['order_lifecycle'] = lifecycle
 
             # create a order id
             orderId = create_slug(Order,lookUpField='order_id')

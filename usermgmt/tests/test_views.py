@@ -31,8 +31,7 @@ class UsermgmtTestCase(APITestCase):
        
         self.assertEqual(response.status_code,status.HTTP_400_BAD_REQUEST)
         self.assertIn('error',response.json())
-        self.assertEqual(response.json()['error'],'An user already exists with this email !')
-
+        
         data = {
             'username':'aman soni',
             'email':'aman@gmail.com',

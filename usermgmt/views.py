@@ -6,7 +6,7 @@ from utility.global_functions import generate_verification_link,sendMail,send_to
 import traceback
 
 from rest_framework.response import Response
-from rest_framework import status,generics,viewsets,permissions
+from rest_framework import status,generics,permissions
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import smart_str
 from datetime import datetime
@@ -22,9 +22,8 @@ class RegisterViewSet(generics.GenericAPIView):
             # check if email already exists 
             email = request.data['email']
             if User.objects.filter(email=email):
-                logger.warning(f'errror : An user already exists with this email !')
-                return Response({'error':"An user already exists with this email !"},status=status.HTTP_400_BAD_REQUEST)
-
+                raise Exception(f'errror : An user already exists with this email !')
+                
             # create user      
             user = runSerializer(self.serializer_class,request.data)[0]
             
@@ -54,9 +53,8 @@ class VerifyEmailViewSet(generics.GenericAPIView):
             user = User.objects.filter(id=smartId)
             
             if not user :
-                logger.warning(f'error : Invalid code')
-                return Response({'error':'Invalid code'},status=status.HTTP_400_BAD_REQUEST)  
-            
+                raise Exception(f'error : Invalid code')
+                
             user = user[0]
             user.is_active = True
             user.is_verified = True
@@ -85,12 +83,11 @@ class LoginViewSet(generics.GenericAPIView):
                 if user.check_password(password):
 
                     if not user.is_active :
-                        logger.warning(f'error : Account is inactive')
-                        return Response({'error':'Account is inactive'},status=status.HTTP_400_BAD_REQUEST)
+                        raise Exception(f'error : Account is inactive')
+                       
                     if not user.is_verified :
-                        logger.warning(f'error : Account is not verified')
-                        return Response({'error':'Account is not verified'},status=status.HTTP_400_BAD_REQUEST)
-                    
+                        raise Exception(f'error : Account is not verified')
+                       
                     # record last login time
                     user.last_login = datetime.now()
                     user.save()
@@ -99,8 +96,7 @@ class LoginViewSet(generics.GenericAPIView):
                     data = send_token_response(user)
                     return Response(data,status=status.HTTP_200_OK)
             
-            logger.warning('error : Invalid Credientials !')
-            return Response({'error':'Invalid Credientials !'},status=status.HTTP_400_BAD_REQUEST)
+            raise Exception('error : Invalid Credientials !')
 
         except Exception as e :
             logger.warning(traceback.format_exc())
@@ -112,21 +108,20 @@ class ForgetPasswordViewSet(generics.GenericAPIView):
     def get(self,request,email):
         try :
             user = User.objects.filter(email = email,is_active=True)
-            if user.exists() :
-                user = user[0]
-                # send email with verification link
-                verificationUrl = generate_verification_link(user,'forget-password')
-                email_body = {  
-                                "username":user.username,
-                                'link':verificationUrl,
-                                'type':'forget-password'           
-                            }
-                sendMail(email_body,email,subject='Reset Password')
-                return Response({'success':"An email has been sent to reset your password."},status=status.HTTP_200_OK)
+            if not user.exists() :
+                raise Exception(f'error : No user found with this email!')
             
-            logger.warning(f'error : No user found with this email!')
-            return Response({'error':'No user found with this email!'},status=status.HTTP_400_BAD_REQUEST)  
-
+            user = user[0]
+            # send email with verification link
+            verificationUrl = generate_verification_link(user,'forget-password')
+            email_body = {  
+                            "username":user.username,
+                            'link':verificationUrl,
+                            'type':'forget-password'           
+                        }
+            sendMail(email_body,email,subject='Reset Password')
+            return Response({'success':"An email has been sent to reset your password."},status=status.HTTP_200_OK)
+            
         except Exception as e :
             logger.warning(traceback.format_exc())
             return Response({'error':str(e)},status=status.HTTP_400_BAD_REQUEST)
@@ -143,9 +138,8 @@ class ResetPasswordViewSet(generics.GenericAPIView):
             user = User.objects.filter(id=smartId)
             
             if not user :
-                logger.warning(f'error : Invalid code')
-                return Response({'error':'Invalid code'},status=status.HTTP_400_BAD_REQUEST)  
-            
+                raise Exception(f'error : Invalid code')
+                
             # set password
             user = user[0]
             user.set_password(password)
