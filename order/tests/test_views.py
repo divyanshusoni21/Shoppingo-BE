@@ -5,7 +5,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from ..models import *
 from home.models import Product,Brand,Category,SubCategory,ProductTag
 from payment.models import Payment
-from django.test import TestCase
 
 
 class OrderTestCase(APITestCase):
