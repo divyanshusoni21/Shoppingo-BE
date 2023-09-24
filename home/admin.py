@@ -23,7 +23,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','name','price','category','brand','sold_units')
     list_filter = ('category','brand','tags')
     autocomplete_fields = ('tags',)
-    search_fields = ('id','name','category__id','category__sub_category','brand__brand_name')
+    search_fields = ('id','name','category__id','category__sub_category','brand__brand_name','slug')
 admin.site.register(Product,ProductAdmin)
 
 class UserCartAdmin(admin.ModelAdmin):

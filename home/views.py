@@ -14,11 +14,11 @@ class ProductViewSet(generics.GenericAPIView):
 
     serializer_class = ProductDetailSerializer
 
-    def get(self,request,productId):
+    def get(self,request,productSlug):
         ''' return a detailed info of product.'''
         try :
             # get product with it's related and reverse related objects like brand,tags,category and reviews
-            product = Product.objects.filter(id = productId).select_related('brand','category').prefetch_related('product_review','tags')
+            product = Product.objects.filter(slug = productSlug).select_related('brand','category').prefetch_related('product_review','tags')
             if not product.exists():
                 raise Exception('error : No product found with given id!')
             
@@ -128,7 +128,7 @@ class UserCartViewSet(viewsets.ModelViewSet):
             quantity = int(request.data['quantity'])
             cartItem = UserCart.objects.filter(product_id=productId,user = user)
             if not  cartItem.exists():
-                raise Exception('error : Please check id again!')
+                raise Exception('error : Please check product id again!')
             
             cartItem = cartItem[0]
             

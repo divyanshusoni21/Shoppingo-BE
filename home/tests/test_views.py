@@ -44,8 +44,8 @@ class HomeTestCase(APITestCase):
 
     # >>>>>>>>>>>>>>>>>>>> Product apis tests >>>>>>>>>>>>>>>>>>
     def test_get_product_details(self):
-        ''' test getting a product details by it's id.'''
-        url = reverse('product',kwargs={'productId':self.product.id})
+        ''' test getting a product details by it's slug.'''
+        url = reverse('product',kwargs={'productSlug':self.product.slug})
 
         response = self.client.get(url,format='json')
         self.assertEqual(response.status_code , status.HTTP_200_OK)
@@ -61,8 +61,8 @@ class HomeTestCase(APITestCase):
         self.assertEqual(data['brand']['brand_name'],self.product.brand.brand_name)
         self.assertEqual(data['category']['sub_category'],self.product.category.sub_category)
 
-        # test with wrong product id
-        url = reverse('product',kwargs={'productId':self.category.id})
+        # test with wrong product slug
+        url = reverse('product',kwargs={'productSlug':'anything-but-not-product-slug'})
         response = self.client.get(url,format='json')
         self.assertEqual(response.status_code , status.HTTP_400_BAD_REQUEST)
     

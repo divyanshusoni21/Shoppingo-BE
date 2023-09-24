@@ -1,6 +1,8 @@
 from django.db import models
 from utility.mixins import UUIDMixin
 from usermgmt.models import User
+from django.utils.text import slugify
+
 
 # Create your models here.
 
@@ -44,9 +46,14 @@ class Product(UUIDMixin):
     how_to_use = models.TextField(blank=True)
     sold_units = models.IntegerField(default=0)
     ingredients = models.TextField(blank=True)
+    slug = models.SlugField(db_index=True,blank=True)
 
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Product, self).save(*args, **kwargs)
 
 class ProductReview(UUIDMixin):
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='product_review')
