@@ -3,6 +3,7 @@ from order.models import OrderItem,ORDER_STATUS
 
 from .serializers import *
 
+from utility.pagination import StandardResultsSetPagination
 from shoppingo.settings import logger
 import traceback
 
@@ -32,6 +33,7 @@ class ProductViewSet(generics.GenericAPIView):
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
  
     serializer_class = CategorySerializer
+    pagination_class = StandardResultsSetPagination
 
     def list(self, request, *args, **kwargs):
         ''' return all categories with their sub categories'''
@@ -54,6 +56,15 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
             
             subCategory = subCategory[0]
             products = subCategory.product_set.all() # getting the products
+            
+            # paginating the products
+            page = self.paginate_queryset(products)
+            if page is not None:
+                # serialize the page 
+                serializer = ProductSerializer(page,many = True,context={'request':request})
+               
+                return self.get_paginated_response(serializer.data)
+            
             serializer = ProductSerializer(products,many=True,context={"request": request})
             return Response(serializer.data,status=status.HTTP_200_OK)
             

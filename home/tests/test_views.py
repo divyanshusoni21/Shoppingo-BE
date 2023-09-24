@@ -91,15 +91,24 @@ class HomeTestCase(APITestCase):
         self.assertEqual(response.status_code,status.HTTP_200_OK)
 
         data = response.json()
+
+        # check response format
+
+        # >>> pagination response >>>
+        self.assertIn("count",data)
+        self.assertIn("next",data)
+        self.assertIn("previous",data)
+        self.assertIn("results",data)
         
         # Create a RequestFactory instance to replicate request to pass in serializer
         factory = RequestFactory()
         # Create a GET request and attach the user to it
         request = factory.get(url)
 
+
         # test that the product data we get in response is in the required format or not
         productData = ProductSerializer(self.product,context={'request':request}).data
-        self.assertEqual(productData,data[0]) 
+        self.assertEqual(productData,data["results"][0]) 
 
         # test with a wrong sub category id 
         url = reverse('category-detail',args=[self.category.id])

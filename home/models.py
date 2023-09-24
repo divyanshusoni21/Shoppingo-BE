@@ -32,7 +32,7 @@ class Brand(UUIDMixin):
 
 class Product(UUIDMixin):
     name = models.CharField(max_length=255,db_index=True)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     price = models.IntegerField()
     image = models.ImageField(upload_to="product/image")
     category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, null=True)
