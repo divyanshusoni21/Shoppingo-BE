@@ -9,6 +9,7 @@ import traceback
 
 from rest_framework.response import Response
 from rest_framework import status,generics,viewsets,permissions
+from django.db.models import Q
 
 class ProductViewSet(generics.GenericAPIView):
 
@@ -189,6 +190,36 @@ class ProductReviewViewSet(generics.GenericAPIView):
             return Response({'success':'Product review posted'},status=status.HTTP_200_OK)
             
                  
+        except Exception as e :
+            logger.warning(traceback.format_exc())
+            return Response({'error':str(e)},status=status.HTTP_400_BAD_REQUEST)
+
+class SearchViewSet(generics.GenericAPIView):
+    serializer_class = ProductSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get(self,request,query):
+        ''' get products by searching name , category or brand name '''
+        try :
+            # search the query product name , sub-category and brand name
+            productsByName = Product.objects.filter(name__icontains = query)
+            productsByCategory = Product.objects.filter(category__sub_category__icontains = query)
+            productsByBrand = Product.objects.filter(brand__brand_name__icontains = query)
+
+            # merge all the results 
+            allProducts = productsByName.union(productsByCategory,productsByBrand) # By default, union() removes duplicates from the result.
+
+            # paginating the products
+            page = self.paginate_queryset(allProducts)
+            if page is not None:
+                # serialize the page 
+                serializer = self.serializer_class(page,many = True,context={'request':request})
+               
+                return self.get_paginated_response(serializer.data)
+            
+            serializer = self.serializer_class(allProducts,many=True,context={"request": request})
+            return Response(serializer.data,status=status.HTTP_200_OK)
+
         except Exception as e :
             logger.warning(traceback.format_exc())
             return Response({'error':str(e)},status=status.HTTP_400_BAD_REQUEST)

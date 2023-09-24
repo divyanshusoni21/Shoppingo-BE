@@ -14,7 +14,7 @@ class Category(UUIDMixin):
 
 class SubCategory(UUIDMixin):
     category = models.ForeignKey(Category,on_delete=models.CASCADE)
-    sub_category = models.CharField(max_length=50)
+    sub_category = models.CharField(max_length=50,db_index=True)
 
     def __str__(self) -> str:
         return self.sub_category
@@ -26,7 +26,7 @@ class ProductTag(UUIDMixin):
         return self.tag
     
 class Brand(UUIDMixin):
-    brand_name = models.CharField(max_length=50)
+    brand_name = models.CharField(max_length=50,db_index=True)
     total_products = models.IntegerField(default=0)
 
     def __str__(self) -> str:

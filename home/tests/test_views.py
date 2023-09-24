@@ -278,3 +278,52 @@ class HomeTestCase(APITestCase):
         }
         response  = self.client.post(url,data, headers=self.headers , format='json')
         self.assertEqual(response.status_code,status.HTTP_400_BAD_REQUEST)
+
+    # >>>>>>>>>>>>>>>>> Search Api test >>>>>>>>>>>>>>>>>>>>>>>
+    def test_search(self):
+        ''' test searching products by product name , sub-category and brand name.'''
+       
+        # by product name
+        url = reverse('search',kwargs={'query':'test'})
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code , status.HTTP_200_OK)
+        data = response.json()
+
+        # >>> check pagination response >>>
+        self.assertIn("count",data)
+        self.assertIn("next",data)
+        self.assertIn("previous",data)
+        self.assertIn("results",data)
+
+        # atleast one result shuld show up
+        self.assertGreaterEqual(len(data["results"]),1)
+
+        # by sub-category
+        url = reverse('search',kwargs={'query':'men'})
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code , status.HTTP_200_OK)
+        data = response.json()
+
+        # atleast one result shuld show up
+        self.assertGreaterEqual(len(data["results"]),1)
+
+        # by brand name
+        url = reverse('search',kwargs={'query':'ajio'})
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code , status.HTTP_200_OK)
+        data = response.json()
+
+        # atleast one result shuld show up
+        self.assertGreaterEqual(len(data["results"]),1)
+
+        # query with anything that doesn't exists in db
+        url = reverse('search',kwargs={'query':'anything'})
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code , status.HTTP_200_OK)
+        data = response.json()
+    
+        self.assertEqual(len(data["results"]),0)
